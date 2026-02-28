@@ -2,6 +2,7 @@ package rules
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 
@@ -43,6 +44,7 @@ func NewSensitiveRule(keywords, patterns []string) (SensitiveRule, error) {
 }
 
 func (r SensitiveRule) Check(call domain.LogCall) *domain.Violation {
+	fmt.Fprintf(os.Stderr, "LOGMSGLINT SensitiveRule.Check called for message: %q\n", call.Message)
 	message := strings.ToLower(call.Message)
 	for _, keyword := range r.Keywords {
 		if strings.Contains(message, strings.ToLower(keyword)) {

@@ -31,8 +31,7 @@ func NewAnalyzer(cfg Config) *analysis.Analyzer {
 }
 
 func newValidator(cfg Config) (*usecase.Validator, error) {
-	fmt.Fprintf(os.Stderr, "LOGMSGLINT runtime cfg = %+v\n", cfg)
-
+	fmt.Fprintf(os.Stderr, "LOGMSGLINT newValidator: cfg.Rules.Sensitive=%v\n", cfg.Rules.Sensitive)
 	rulesList := make([]usecase.Rule, 0, 4)
 
 	if cfg.Rules.Lowercase {
@@ -51,8 +50,10 @@ func newValidator(cfg Config) (*usecase.Validator, error) {
 		}
 		rulesList = append(rulesList, sensitiveRule)
 	}
-
-	fmt.Fprintf(os.Stderr, "LOGMSGLINT rules count=%d sensitive=%v\n", len(rulesList), cfg.Rules.Sensitive)
+	fmt.Fprintf(os.Stderr, "LOGMSGLINT rules added: count=%d, sensitive=%v\n", len(rulesList), cfg.Rules.Sensitive)
+	for i, r := range rulesList {
+		fmt.Fprintf(os.Stderr, "  rule[%d]: %T\n", i, r)
+	}
 
 	return usecase.NewValidator(rulesList), nil
 }
@@ -75,11 +76,15 @@ func run(pass *analysis.Pass, cfg Config) (any, error) {
 		}
 
 		violations := validator.Validate(extracted.Call)
+		fmt.Fprintf(os.Stderr, "LOGMSGLINT violations raw: %+v\n", violations)
 		violations = filterViolationsByConfig(violations, cfg)
+		fmt.Fprintf(os.Stderr, "LOGMSGLINT violations after filterByConfig: %+v\n", violations)
+
 		if !cfg.Rules.Sensitive && len(violations) > 0 {
 			filtered := violations[:0]
 			for _, v := range violations {
 				if v.Code == domain.ViolationSensitive {
+					fmt.Fprintf(os.Stderr, "LOGMSGLINT removing sensitive violation: %+v\n", v)
 					continue
 				}
 				filtered = append(filtered, v)
@@ -87,6 +92,7 @@ func run(pass *analysis.Pass, cfg Config) (any, error) {
 			violations = filtered
 		}
 
+		fmt.Fprintf(os.Stderr, "LOGMSGLINT violations final: %+v\n", violations)
 		for _, violation := range violations {
 			diagnostic := analysis.Diagnostic{
 				Pos:     extracted.MessagePos,
