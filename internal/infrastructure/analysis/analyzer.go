@@ -262,10 +262,3 @@ func collapsePunctuation(input string) string {
 
 	return b.String()
 }
-
-var inlineConfig *Config
-
-func SetInlineConfig(cfg Config) {
-	c := cfg
-	inlineConfig = &c
-}
