@@ -18,16 +18,7 @@ import (
 	"golang.org/x/tools/go/ast/inspector"
 )
 
-func logToFile(msg string) {
-	f, err := os.OpenFile("/tmp/logmsglint.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
-	if err != nil {
-		return
-	}
-	defer f.Close()
-	fmt.Fprintln(f, msg)
-}
 func NewAnalyzer(cfg Config) *analysis.Analyzer {
-	logToFile(fmt.Sprintf("NewAnalyzer: cfg.Rules.Sensitive=%v", cfg.Rules.Sensitive))
 	cfgCopy := cfg
 	return &analysis.Analyzer{
 		Name:     "logmsglint",
@@ -40,7 +31,7 @@ func NewAnalyzer(cfg Config) *analysis.Analyzer {
 }
 
 func newValidator(cfg Config) (*usecase.Validator, error) {
-	logToFile(fmt.Sprintf("newValidator: cfg.Rules.Sensitive=%v", cfg.Rules.Sensitive))
+	fmt.Fprintf(os.Stderr, "LOGMSGLINT newValidator: cfg.Rules.Sensitive=%v\n", cfg.Rules.Sensitive)
 	rulesList := make([]usecase.Rule, 0, 4)
 
 	if cfg.Rules.Lowercase {
@@ -59,17 +50,15 @@ func newValidator(cfg Config) (*usecase.Validator, error) {
 		}
 		rulesList = append(rulesList, sensitiveRule)
 	}
-	logToFile(fmt.Sprintf("newValidator: rules count=%d, contains SensitiveRule? %v", len(rulesList), cfg.Rules.Sensitive))
+	fmt.Fprintf(os.Stderr, "LOGMSGLINT rules added: count=%d, sensitive=%v\n", len(rulesList), cfg.Rules.Sensitive)
 	for i, r := range rulesList {
-		logToFile(fmt.Sprintf("  rule[%d]: %T", i, r))
+		fmt.Fprintf(os.Stderr, "  rule[%d]: %T\n", i, r)
 	}
 
 	return usecase.NewValidator(rulesList), nil
 }
 
 func run(pass *analysis.Pass, cfg Config) (any, error) {
-	cfg.Rules.Sensitive = false
-	logToFile(fmt.Sprintf("run started, cfg.Rules.Sensitive=%v", cfg.Rules.Sensitive))
 	insp := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
 
 	validator, err := newValidator(cfg)
@@ -87,21 +76,23 @@ func run(pass *analysis.Pass, cfg Config) (any, error) {
 		}
 
 		violations := validator.Validate(extracted.Call)
-		logToFile(fmt.Sprintf("violations raw: %+v", violations))
+		fmt.Fprintf(os.Stderr, "LOGMSGLINT violations raw: %+v\n", violations)
 		violations = filterViolationsByConfig(violations, cfg)
-		logToFile(fmt.Sprintf("violations after filterByConfig: %+v", violations))
+		fmt.Fprintf(os.Stderr, "LOGMSGLINT violations after filterByConfig: %+v\n", violations)
+
 		if !cfg.Rules.Sensitive && len(violations) > 0 {
 			filtered := violations[:0]
 			for _, v := range violations {
 				if v.Code == domain.ViolationSensitive {
-					logToFile(fmt.Sprintf("removing sensitive violation: %+v", v))
+					fmt.Fprintf(os.Stderr, "LOGMSGLINT removing sensitive violation: %+v\n", v)
 					continue
 				}
 				filtered = append(filtered, v)
 			}
 			violations = filtered
 		}
-		logToFile(fmt.Sprintf("violations final: %+v", violations))
+
+		fmt.Fprintf(os.Stderr, "LOGMSGLINT violations final: %+v\n", violations)
 		for _, violation := range violations {
 			diagnostic := analysis.Diagnostic{
 				Pos:     extracted.MessagePos,
