@@ -3,6 +3,7 @@ package analysis
 import (
 	"fmt"
 	"go/ast"
+	"os"
 	"regexp"
 	"strconv"
 	"strings"
@@ -18,17 +19,22 @@ import (
 )
 
 func NewAnalyzer(cfg Config) *analysis.Analyzer {
+	cfgCopy := cfg
 	return &analysis.Analyzer{
-		Name: "logmsglint",
-		Doc:  "log message must be in English",
+		Name:     "logmsglint",
+		Doc:      "log message must be in English",
+		Requires: []*analysis.Analyzer{inspect.Analyzer},
 		Run: func(pass *analysis.Pass) (any, error) {
-			return run(pass, cfg)
+			return run(pass, cfgCopy)
 		},
 	}
 }
 
 func newValidator(cfg Config) (*usecase.Validator, error) {
+	fmt.Fprintf(os.Stderr, "LOGMSGLINT runtime cfg = %+v\n", cfg)
+
 	rulesList := make([]usecase.Rule, 0, 4)
+
 	if cfg.Rules.Lowercase {
 		rulesList = append(rulesList, rules.LowercaseRule{})
 	}
@@ -46,11 +52,14 @@ func newValidator(cfg Config) (*usecase.Validator, error) {
 		rulesList = append(rulesList, sensitiveRule)
 	}
 
+	fmt.Fprintf(os.Stderr, "LOGMSGLINT rules count=%d sensitive=%v\n", len(rulesList), cfg.Rules.Sensitive)
+
 	return usecase.NewValidator(rulesList), nil
 }
 
 func run(pass *analysis.Pass, cfg Config) (any, error) {
 	insp := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
+
 	validator, err := newValidator(cfg)
 	if err != nil {
 		return nil, err
@@ -59,12 +68,25 @@ func run(pass *analysis.Pass, cfg Config) (any, error) {
 	nodeFilter := []ast.Node{(*ast.CallExpr)(nil)}
 	insp.Preorder(nodeFilter, func(node ast.Node) {
 		callExpr := node.(*ast.CallExpr)
+
 		extracted, ok := extractLogCall(pass, callExpr)
 		if !ok {
 			return
 		}
 
 		violations := validator.Validate(extracted.Call)
+		violations = filterViolationsByConfig(violations, cfg)
+		if !cfg.Rules.Sensitive && len(violations) > 0 {
+			filtered := violations[:0]
+			for _, v := range violations {
+				if v.Code == domain.ViolationSensitive {
+					continue
+				}
+				filtered = append(filtered, v)
+			}
+			violations = filtered
+		}
+
 		for _, violation := range violations {
 			diagnostic := analysis.Diagnostic{
 				Pos:     extracted.MessagePos,
@@ -96,12 +118,19 @@ func makeSuggestedFix(extracted *ExtractedLogCall, violation domain.Violation, c
 	replacement := message
 	switch violation.Code {
 	case domain.ViolationLowercase:
+		if !cfg.Rules.Lowercase {
+			return analysis.SuggestedFix{}, false
+		}
 		first, size := utf8.DecodeRuneInString(message)
 		if first == utf8.RuneError && size == 0 {
 			return analysis.SuggestedFix{}, false
 		}
 		replacement = string(unicode.ToLower(first)) + message[size:]
+
 	case domain.ViolationEnglish:
+		if !cfg.Rules.English {
+			return analysis.SuggestedFix{}, false
+		}
 		replacement = strings.Map(func(r rune) rune {
 			if r == '\n' || r == '\t' || r == '\r' {
 				return -1
@@ -114,7 +143,11 @@ func makeSuggestedFix(extracted *ExtractedLogCall, violation domain.Violation, c
 			}
 			return -1
 		}, message)
+
 	case domain.ViolationNoSpecial:
+		if !cfg.Rules.NoSpecial {
+			return analysis.SuggestedFix{}, false
+		}
 		replacement = strings.Map(func(r rune) rune {
 			if unicode.IsControl(r) || unicode.IsSymbol(r) {
 				return -1
@@ -122,8 +155,13 @@ func makeSuggestedFix(extracted *ExtractedLogCall, violation domain.Violation, c
 			return r
 		}, message)
 		replacement = collapsePunctuation(replacement)
+
 	case domain.ViolationSensitive:
+		if !cfg.Rules.Sensitive {
+			return analysis.SuggestedFix{}, false
+		}
 		replacement = redactSensitive(message, cfg.Sensitive)
+
 	default:
 		return analysis.SuggestedFix{}, false
 	}
@@ -141,7 +179,35 @@ func makeSuggestedFix(extracted *ExtractedLogCall, violation domain.Violation, c
 		}},
 	}, true
 }
+func filterViolationsByConfig(violations []domain.Violation, cfg Config) []domain.Violation {
+	if len(violations) == 0 {
+		return violations
+	}
 
+	out := violations[:0]
+	for _, v := range violations {
+		switch v.Code {
+		case domain.ViolationLowercase:
+			if !cfg.Rules.Lowercase {
+				continue
+			}
+		case domain.ViolationEnglish:
+			if !cfg.Rules.English {
+				continue
+			}
+		case domain.ViolationNoSpecial:
+			if !cfg.Rules.NoSpecial {
+				continue
+			}
+		case domain.ViolationSensitive:
+			if !cfg.Rules.Sensitive {
+				continue
+			}
+		}
+		out = append(out, v)
+	}
+	return out
+}
 func redactSensitive(message string, cfg SensitiveConfig) string {
 	replacement := message
 	keywords := cfg.Keywords

@@ -10,5 +10,5 @@ func TestAnalyzer(t *testing.T) {
 	t.Parallel()
 
 	testdata := analysistest.TestData()
-	analysistest.Run(t, testdata, NewAnalyzer(), "a")
+	analysistest.Run(t, testdata, NewAnalyzer(DefaultConfig()), "a")
 }

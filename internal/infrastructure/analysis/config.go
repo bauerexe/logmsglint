@@ -74,5 +74,6 @@ func ConfigFromSettings(settings any) (Config, error) {
 	if err := json.Unmarshal(b, &cfg); err != nil {
 		return Config{}, err
 	}
+
 	return cfg, nil
 }

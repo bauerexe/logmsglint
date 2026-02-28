@@ -25,7 +25,7 @@ func New(conf any) (register.LinterPlugin, error) {
 
 	cfg, err := loganalysis.ConfigFromSettings(conf)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("logmsglint: invalid settings: %w", err)
 	}
 
 	b2, _ := json.Marshal(cfg)
