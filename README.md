@@ -68,60 +68,41 @@ go install github.com/bauerex/logmsglint/cmd/logmsglint@latest
 go run ./cmd/logmsglint ./...
 ```
 
-## Подключение к golangci-lint (module plugin)
-
-Пример `.golangci.yml`:
-
-
-```yaml
-version: "2"
-
-linters-settings:
-  custom:
-    logmsglint:
-      path: ./cmd/golangci-plugin
-      description: Checks slog/zap log messages
-
-linters:
-  enable:
-    - logmsglint
-```
-
-> Конкретный способ сборки/подключения может отличаться в зависимости от версии `golangci-lint`; функция `New(any) ([]*analysis.Analyzer, error)` в `cmd/golangci-plugin` подготовлена под модульную схему плагинов.
-
 ## Минимальный пример для golangci-lint (plugin)
 
 Минимально заполненный `.golangci.yml`:
-```bash
- go get github.com/bauerexe/logmsglint/cmd/golangci-plugin
- mkdir -p .golangci/plugins
-go build -buildmode=plugin \
-  -o .golangci/plugins/logmsglint.so \
-  github.com/bauerexe/logmsglint/cmd/golangci-plugin
- ```
+
 ```yaml
 version: "2"
 
 linters-settings:
   custom:
     logmsglint:
-      path: ./cmd/golangci-plugin
-
+      type: module
+      settings:
+        rules:
+          lowercase: true
+          english: true
+          nospecial: true
+          sensitive: false
 linters:
   enable:
     - logmsglint
+    
 ```
-
-Если хотите сразу передать настройки правил, добавьте рядом файл `.logmsglint.yml`:
-
+`.custom-gci.yml`:
 ```yaml
-rules:
-  lowercase: true
-  english: true
-  nospecial: true
-  sensitive: true
-```
+version: v1.64.8
 
+plugins:
+  - module: github.com/bauerexe/logmsglint
+    version: v0.1.2
+```
+### Запуск:
+```bash
+golangci-lint custom -v
+./custom-gcl run
+```
 ## Как использовать без golangci-lint
 
 Самый простой путь — запуск бинаря `logmsglint`:
