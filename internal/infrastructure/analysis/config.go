@@ -60,3 +60,19 @@ func loadConfig(path string) (Config, error) {
 
 	return cfg, nil
 }
+
+func ConfigFromSettings(settings any) (Config, error) {
+	cfg := defaultConfig()
+	if settings == nil {
+		return cfg, nil
+	}
+
+	b, err := json.Marshal(settings)
+	if err != nil {
+		return Config{}, err
+	}
+	if err := json.Unmarshal(b, &cfg); err != nil {
+		return Config{}, err
+	}
+	return cfg, nil
+}

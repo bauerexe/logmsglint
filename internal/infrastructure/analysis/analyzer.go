@@ -26,7 +26,24 @@ func NewAnalyzer() *analysis.Analyzer {
 		Doc:      "checks logging message quality in slog and zap calls",
 		Requires: []*analysis.Analyzer{inspect.Analyzer},
 		Run: func(pass *analysis.Pass) (any, error) {
-			cfg, err := loadConfig(configPath)
+			// Приоритет:
+			// 1) -config флаг (CLI)
+			// 2) inlineConfig (golangci-lint plugin)
+			// 3) .logmsglint.yml / дефолты
+			var (
+				cfg Config
+				err error
+			)
+
+			switch {
+			case configPath != "":
+				cfg, err = loadConfig(configPath)
+			case inlineConfig != nil:
+				cfg = *inlineConfig
+			default:
+				cfg, err = loadConfig("")
+			}
+
 			if err != nil {
 				return nil, fmt.Errorf("load config: %w", err)
 			}
@@ -191,4 +208,11 @@ func collapsePunctuation(input string) string {
 	}
 
 	return b.String()
+}
+
+var inlineConfig *Config
+
+func SetInlineConfig(cfg Config) {
+	c := cfg
+	inlineConfig = &c
 }

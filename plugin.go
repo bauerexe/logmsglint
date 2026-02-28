@@ -1,28 +1,36 @@
-package linters
+package main
 
 import (
 	"github.com/golangci/plugin-module-register/register"
 	"golang.org/x/tools/go/analysis"
 
-	myanalysis "github.com/bauerexe/logmsglint/internal/infrastructure/analysis"
+	loganalysis "github.com/bauerexe/logmsglint/internal/infrastructure/analysis"
 )
 
 func init() {
 	register.Plugin("logmsglint", New)
 }
 
-type Plugin struct{}
-
-func New(settings any) (register.LinterPlugin, error) {
-	return &Plugin{}, nil
+type plugin struct {
+	cfg loganalysis.Config
 }
 
-func (p *Plugin) BuildAnalyzers() ([]*analysis.Analyzer, error) {
+func New(conf any) (register.LinterPlugin, error) {
+	cfg, err := register.DecodeSettings[loganalysis.Config](conf)
+	if err != nil {
+		return nil, err
+	}
+
+	return plugin{cfg: cfg}, nil
+}
+
+func (p plugin) BuildAnalyzers() ([]*analysis.Analyzer, error) {
+	loganalysis.SetInlineConfig(p.cfg)
 	return []*analysis.Analyzer{
-		myanalysis.NewAnalyzer(),
+		loganalysis.NewAnalyzer(),
 	}, nil
 }
 
-func (p *Plugin) GetLoadMode() string {
-	return register.LoadModeTypesInfo
+func (p plugin) GetLoadMode() string {
+	return register.LoadModeSyntax
 }
