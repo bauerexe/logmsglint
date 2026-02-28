@@ -13,7 +13,7 @@ func TestLoadConfig(t *testing.T) {
 	t.Parallel()
 	t.Run("missing file uses defaults", func(t *testing.T) {
 		t.Parallel()
-		cfg, err := loadConfig(filepath.Join(t.TempDir(), "missing.yml"))
+		cfg, err := LoadConfig(filepath.Join(t.TempDir(), "missing.yml"))
 		require.NoError(t, err)
 		assert.True(t, cfg.Rules.Lowercase)
 		assert.True(t, cfg.Rules.English)
@@ -28,7 +28,7 @@ func TestLoadConfig(t *testing.T) {
 		err := os.WriteFile(path, []byte("rules:\n  lowercase: false\n  english: true\n  nospecial: false\n  sensitive: true\nsensitive:\n  patterns:\n    - '(?i)card\\s*\\d{4}'\n"), 0o600)
 		require.NoError(t, err)
 
-		cfg, err := loadConfig(path)
+		cfg, err := LoadConfig(path)
 		require.NoError(t, err)
 		assert.False(t, cfg.Rules.Lowercase)
 		assert.False(t, cfg.Rules.NoSpecial)

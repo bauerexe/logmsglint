@@ -27,7 +27,7 @@ type SensitiveConfig struct {
 	Patterns []string `json:"patterns" yaml:"patterns"`
 }
 
-func defaultConfig() Config {
+func DefaultConfig() Config {
 	return Config{
 		Rules: RulesConfig{
 			Lowercase: true,
@@ -38,8 +38,8 @@ func defaultConfig() Config {
 	}
 }
 
-func loadConfig(path string) (Config, error) {
-	cfg := defaultConfig()
+func LoadConfig(path string) (Config, error) {
+	cfg := DefaultConfig()
 	if path == "" {
 		path = defaultConfigPath
 	}
@@ -62,7 +62,7 @@ func loadConfig(path string) (Config, error) {
 }
 
 func ConfigFromSettings(settings any) (Config, error) {
-	cfg := defaultConfig()
+	cfg := DefaultConfig()
 	if settings == nil {
 		return cfg, nil
 	}

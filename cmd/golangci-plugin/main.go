@@ -1,11 +1,35 @@
-package main
+package logmsglint
 
 import (
-	loganalysis "github.com/bauerexe/logmsglint/internal/infrastructure/analysis"
+	"github.com/golangci/plugin-module-register/register"
 	"golang.org/x/tools/go/analysis"
+
+	loganalysis "github.com/bauerexe/logmsglint/internal/infrastructure/analysis"
 )
 
-// New is the entrypoint expected by golangci-lint module plugin system
-func New(any) ([]*analysis.Analyzer, error) {
-	return []*analysis.Analyzer{loganalysis.NewAnalyzer()}, nil
+func init() {
+	register.Plugin("logmsglint", New)
+}
+
+type plugin struct {
+	cfg loganalysis.Config
+}
+
+func New(conf any) (register.LinterPlugin, error) {
+	cfg, err := loganalysis.ConfigFromSettings(conf)
+	if err != nil {
+		return nil, err
+	}
+	return plugin{cfg: cfg}, nil
+}
+
+func (p plugin) BuildAnalyzers() ([]*analysis.Analyzer, error) {
+
+	return []*analysis.Analyzer{
+		loganalysis.NewAnalyzer(p.cfg),
+	}, nil
+}
+
+func (p plugin) GetLoadMode() string {
+	return register.LoadModeSyntax
 }
