@@ -3,6 +3,7 @@ module github.com/bauerexe/logmsglint
 go 1.25.6
 
 require (
+	github.com/golangci/plugin-module-register v0.1.2
 	github.com/stretchr/testify v1.10.0
 	golang.org/x/tools v0.38.0
 	gopkg.in/yaml.v3 v3.0.1

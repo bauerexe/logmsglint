@@ -1,14 +1,28 @@
-package logmsglint
+package linters
 
 import (
-	myanalysis "github.com/bauerexe/logmsglint/internal/infrastructure/analysis"
+	"github.com/golangci/plugin-module-register/register"
 	"golang.org/x/tools/go/analysis"
+
+	myanalysis "github.com/bauerexe/logmsglint/internal/infrastructure/analysis"
 )
 
-// Analyzer — экспортируемый анализатор, который увидит golangci-lint custom.
-var Analyzer *analysis.Analyzer = NewAnalyzer()
+func init() {
+	register.Plugin("logmsglint", New)
+}
 
-// NewAnalyzer возвращает твой анализатор.
-func NewAnalyzer() *analysis.Analyzer {
-	return myanalysis.NewAnalyzer()
+type Plugin struct{}
+
+func New(settings any) (register.LinterPlugin, error) {
+	return &Plugin{}, nil
+}
+
+func (p *Plugin) BuildAnalyzers() ([]*analysis.Analyzer, error) {
+	return []*analysis.Analyzer{
+		myanalysis.NewAnalyzer(),
+	}, nil
+}
+
+func (p *Plugin) GetLoadMode() string {
+	return register.LoadModeTypesInfo
 }

@@ -72,6 +72,7 @@ go run ./cmd/logmsglint ./...
 
 Пример `.golangci.yml`:
 
+
 ```yaml
 version: "2"
 
@@ -91,7 +92,13 @@ linters:
 ## Минимальный пример для golangci-lint (plugin)
 
 Минимально заполненный `.golangci.yml`:
-
+```bash
+ go get github.com/bauerexe/logmsglint/cmd/golangci-plugin
+ mkdir -p .golangci/plugins
+go build -buildmode=plugin \
+  -o .golangci/plugins/logmsglint.so \
+  github.com/bauerexe/logmsglint/cmd/golangci-plugin
+ ```
 ```yaml
 version: "2"
 
