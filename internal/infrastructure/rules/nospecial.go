@@ -4,7 +4,7 @@ import (
 	"regexp"
 	"unicode"
 
-	"github.com/bauerex/logmsglint/internal/domain"
+	"github.com/bauerexe/logmsglint/internal/domain"
 )
 
 var repeatedPunctuationPattern = regexp.MustCompile(`(!!!+|\.\.\.+|\?\?+)`)

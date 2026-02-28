@@ -1,4 +1,4 @@
-module github.com/bauerex/logmsglint
+module github.com/bauerexe/logmsglint
 
 go 1.25.6
 

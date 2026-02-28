@@ -3,7 +3,7 @@ package rules
 import (
 	"testing"
 
-	"github.com/bauerex/logmsglint/internal/domain"
+	"github.com/bauerexe/logmsglint/internal/domain"
 	"github.com/stretchr/testify/assert"
 )
 

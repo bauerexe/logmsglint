@@ -1,7 +1,7 @@
 package main
 
 import (
-	loganalysis "github.com/bauerex/logmsglint/internal/infrastructure/analysis"
+	loganalysis "github.com/bauerexe/logmsglint/internal/infrastructure/analysis"
 	"golang.org/x/tools/go/analysis"
 )
 

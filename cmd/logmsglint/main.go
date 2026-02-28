@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/bauerex/logmsglint/internal/infrastructure/analysis"
+	"github.com/bauerexe/logmsglint/internal/infrastructure/analysis"
 	"golang.org/x/tools/go/analysis/singlechecker"
 )
 

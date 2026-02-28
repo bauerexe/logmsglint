@@ -6,7 +6,7 @@ import (
 	"go/types"
 	"strconv"
 
-	"github.com/bauerex/logmsglint/internal/domain"
+	"github.com/bauerexe/logmsglint/internal/domain"
 	"golang.org/x/tools/go/analysis"
 )
 

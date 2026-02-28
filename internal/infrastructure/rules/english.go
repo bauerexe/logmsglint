@@ -3,7 +3,7 @@ package rules
 import (
 	"unicode"
 
-	"github.com/bauerex/logmsglint/internal/domain"
+	"github.com/bauerexe/logmsglint/internal/domain"
 )
 
 type EnglishRule struct{}

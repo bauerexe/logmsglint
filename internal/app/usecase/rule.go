@@ -1,6 +1,6 @@
 package usecase
 
-import "github.com/bauerex/logmsglint/internal/domain"
+import "github.com/bauerexe/logmsglint/internal/domain"
 
 // Rule describes validation contract used by application use case.
 type Rule interface {

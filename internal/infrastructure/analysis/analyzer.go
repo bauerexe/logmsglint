@@ -9,9 +9,9 @@ import (
 	"unicode"
 	"unicode/utf8"
 
-	"github.com/bauerex/logmsglint/internal/app/usecase"
-	"github.com/bauerex/logmsglint/internal/domain"
-	"github.com/bauerex/logmsglint/internal/infrastructure/rules"
+	"github.com/bauerexe/logmsglint/internal/app/usecase"
+	"github.com/bauerexe/logmsglint/internal/domain"
+	"github.com/bauerexe/logmsglint/internal/infrastructure/rules"
 	"golang.org/x/tools/go/analysis"
 	"golang.org/x/tools/go/analysis/passes/inspect"
 	"golang.org/x/tools/go/ast/inspector"

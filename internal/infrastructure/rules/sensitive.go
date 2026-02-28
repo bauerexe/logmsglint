@@ -5,7 +5,7 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/bauerex/logmsglint/internal/domain"
+	"github.com/bauerexe/logmsglint/internal/domain"
 )
 
 var DefaultSensitiveKeywords = []string{
