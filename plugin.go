@@ -16,19 +16,16 @@ type plugin struct {
 }
 
 func New(conf any) (register.LinterPlugin, error) {
-	cfg, err := register.DecodeSettings[loganalysis.Config](conf)
+	cfg, err := loganalysis.ConfigFromSettings(conf)
 	if err != nil {
 		return nil, err
 	}
-
 	return plugin{cfg: cfg}, nil
 }
 
 func (p plugin) BuildAnalyzers() ([]*analysis.Analyzer, error) {
 	loganalysis.SetInlineConfig(p.cfg)
-	return []*analysis.Analyzer{
-		loganalysis.NewAnalyzer(),
-	}, nil
+	return []*analysis.Analyzer{loganalysis.NewAnalyzer()}, nil
 }
 
 func (p plugin) GetLoadMode() string {
