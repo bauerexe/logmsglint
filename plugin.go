@@ -1,4 +1,4 @@
-package main
+package logmsglint
 
 import (
 	"github.com/golangci/plugin-module-register/register"
