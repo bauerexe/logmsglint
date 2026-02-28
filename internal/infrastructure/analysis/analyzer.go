@@ -27,6 +27,7 @@ func logToFile(msg string) {
 	fmt.Fprintln(f, msg)
 }
 func NewAnalyzer(cfg Config) *analysis.Analyzer {
+	logToFile(fmt.Sprintf("NewAnalyzer: cfg.Rules.Sensitive=%v", cfg.Rules.Sensitive))
 	cfgCopy := cfg
 	return &analysis.Analyzer{
 		Name:     "logmsglint",
@@ -67,6 +68,7 @@ func newValidator(cfg Config) (*usecase.Validator, error) {
 }
 
 func run(pass *analysis.Pass, cfg Config) (any, error) {
+	cfg.Rules.Sensitive = false
 	logToFile(fmt.Sprintf("run started, cfg.Rules.Sensitive=%v", cfg.Rules.Sensitive))
 	insp := pass.ResultOf[inspect.Analyzer].(*inspector.Inspector)
 

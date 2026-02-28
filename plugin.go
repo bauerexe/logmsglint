@@ -11,6 +11,15 @@ import (
 	loganalysis "github.com/bauerexe/logmsglint/internal/infrastructure/analysis"
 )
 
+func logToFile(msg string) {
+	f, err := os.OpenFile("/tmp/logmsglint.log", os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		return
+	}
+	defer f.Close()
+	fmt.Fprintln(f, msg)
+}
+
 func init() {
 	register.Plugin("logmsglint", New)
 }
@@ -35,6 +44,7 @@ func New(conf any) (register.LinterPlugin, error) {
 }
 
 func (p plugin) BuildAnalyzers() ([]*analysis.Analyzer, error) {
+	logToFile(fmt.Sprintf("BuildAnalyzers: cfg.Rules.Sensitive=%v", p.cfg.Rules.Sensitive))
 	return []*analysis.Analyzer{
 		loganalysis.NewAnalyzer(p.cfg),
 	}, nil
